@@ -272,7 +272,7 @@ export function useFiles(
 					updated: 1733306011391,
 					locked: true,
 					fontSize: 20,
-					fontFamily: 3,
+					fontFamily: 5,
 					text:
 						meta.name.length > 14
 							? meta.name.slice(0, 11) + '...'

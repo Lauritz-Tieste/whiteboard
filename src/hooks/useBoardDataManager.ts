@@ -168,9 +168,11 @@ export function useBoardDataManager() {
 
 		try {
 			const defaultSettings = {
-				currentItemFontFamily: 3,
-				currentItemStrokeWidth: 1,
-				currentItemRoughness: 0,
+				currentItemFontFamily: 5,
+				currentItemStrokeWidth: 2,
+				currentItemRoughness: 1,
+				currentItemFillStyle: 'solid',
+				currentItemRoundness: 'round',
 			}
 
 			const localData = await db.get(fileId)

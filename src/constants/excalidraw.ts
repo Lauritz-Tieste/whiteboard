@@ -8,9 +8,11 @@ import type { ExcalidrawInitialDataState } from '@nextcloud/excalidraw/types/typ
 export const initialDataState: ExcalidrawInitialDataState = {
 	elements: [],
 	appState: {
-		currentItemFontFamily: 3,
-		currentItemStrokeWidth: 1,
-		currentItemRoughness: 0,
+		currentItemFontFamily: 5,
+		currentItemStrokeWidth: 2,
+		currentItemRoughness: 1,
+		currentItemFillStyle: 'solid',
+		currentItemRoundness: 'round',
 	},
 	files: {},
 }
