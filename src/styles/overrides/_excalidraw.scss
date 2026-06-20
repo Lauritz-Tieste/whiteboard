@@ -187,3 +187,27 @@
 .whiteboard-viewer__embedding .App-bottom-bar {
 	display: none !important;
 }
+
+.color-picker__button {
+	min-height: auto !important;
+	width: 1.9rem !important;
+	height: 1.9rem !important;
+}
+
+.excalidraw .range-input {
+    min-height: auto!important;
+}
+
+.excalidraw .FontPicker__container {
+	display: flex !important;
+}
+
+button:not(.button-vue,[class^=vs__]):not(:disabled,.primary):not(.app-navigation-entry-button).active {
+	border-color: transparent !important;
+}
+
+button {
+	&:hover {
+    border-color: transparent !important;
+  }
+}
