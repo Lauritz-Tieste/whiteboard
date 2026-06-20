@@ -303,6 +303,7 @@ export function useCollaboration() {
 		async (payload: {
 			pointer: { x: number; y: number; tool: 'pointer' | 'laser' }
 			button: 'down' | 'up'
+			selectedElementIds: AppState['selectedElementIds']
 			user: { id: string; name: string }
 		}) => {
 			if (!excalidrawAPI) return
@@ -338,8 +339,7 @@ export function useCollaboration() {
 					username: payload.user.name,
 					pointer: payload.pointer,
 					button: payload.button,
-					// We don't need selectedElementIds for cursor updates
-					selectedElementIds: {}, // Use empty object instead of full selectedElementIds
+					selectedElementIds: payload.selectedElementIds,
 				})
 
 				// Update Excalidraw scene with all changes at once
@@ -370,6 +370,7 @@ export function useCollaboration() {
 			throttledUpdateCursor({
 				pointer: payload.pointer,
 				button: payload.button,
+				selectedElementIds: payload.selectedElementIds,
 				user: payload.user,
 			})
 		},
