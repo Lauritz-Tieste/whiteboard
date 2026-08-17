@@ -3,33 +3,45 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { readFileSync } from 'fs'
+import { configureNextcloud, runExec, runOcc } from '@nextcloud/e2e-test-server'
 import { test as setup } from '@playwright/test'
-import { configureNextcloud, runOcc, runExec } from '@nextcloud/e2e-test-server'
+import { readFileSync } from 'fs'
 
 type AppList = {
 	enabled: Record<string, string>
 	disabled: Record<string, string>
 }
 
-const getServerBranch = () => {
+type OccOutput = string | { stdout?: string }
+
+function getOccOutput(result: OccOutput): string {
+	if (typeof result === 'string') {
+		return result
+	}
+
+	if (typeof result.stdout === 'string') {
+		return result.stdout
+	}
+
+	throw new Error('Could not read occ command output')
+}
+
+function getServerBranch() {
 	if (process.env.SERVER_VERSION) {
 		return process.env.SERVER_VERSION
 	}
 
 	try {
 		const appinfo = readFileSync('appinfo/info.xml').toString()
-		const maxVersion = appinfo.match(
-			/<nextcloud min-version="\d+" max-version="(\d\d+)" \/>/,
-		)?.[1]
+		const maxVersion = appinfo.match(/<nextcloud min-version="\d+" max-version="(\d\d+)" \/>/)?.[1]
 		return maxVersion ? `stable${maxVersion}` : 'master'
 	} catch {
 		return 'master'
 	}
 }
 
-const readAppList = async (): Promise<AppList> => {
-	const raw = await runOcc(['app:list', '--output', 'json'])
+async function readAppList(): Promise<AppList> {
+	const raw = getOccOutput(await runOcc(['app:list', '--output', 'json']))
 	const jsonStart = raw.indexOf('{')
 	if (jsonStart === -1) {
 		throw new Error('Could not read app list from occ output')
@@ -37,12 +49,12 @@ const readAppList = async (): Promise<AppList> => {
 	return JSON.parse(raw.slice(jsonStart)) as AppList
 }
 
-const isAppEnabled = async (app: string) => {
+async function isAppEnabled(app: string) {
 	const list = await readAppList()
 	return Boolean(list.enabled?.[app])
 }
 
-const enableAppIfPresent = async (app: string) => {
+async function enableAppIfPresent(app: string) {
 	const list = await readAppList()
 	if (list.disabled?.[app]) {
 		await runOcc(['app:enable', '--force', app])
@@ -50,9 +62,9 @@ const enableAppIfPresent = async (app: string) => {
 	return isAppEnabled(app)
 }
 
-const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
-const ensureAssistantInstalled = async () => {
+async function ensureAssistantInstalled() {
 	if (await isAppEnabled('assistant')) {
 		return
 	}
@@ -85,6 +97,21 @@ const ensureAssistantInstalled = async () => {
 	throw new Error('Assistant app could not be installed or enabled')
 }
 
+async function ensureTextInstalled() {
+	if (await isAppEnabled('text')) {
+		return
+	}
+
+	if (await enableAppIfPresent('text')) {
+		return
+	}
+
+	const serverBranch = getServerBranch()
+	const branch = serverBranch === 'master' ? 'main' : serverBranch
+	await runExec(['git', 'clone', '--depth=1', `--branch=${branch}`, 'https://github.com/nextcloud/text.git', 'apps/text'])
+	await runOcc(['app:enable', '--force', 'text'])
+}
+
 /**
  * We use this to ensure Nextcloud is configured correctly before running our tests
  *
@@ -101,8 +128,9 @@ setup('Configure Nextcloud', async () => {
 		'testing',
 	]
 	await configureNextcloud(appsToInstall, getServerBranch())
-	await runExec(['git', '-C', 'apps/viewer', 'log', '-1'], { verbose: true })
+	await runExec(['git', '-C', 'apps-writable/viewer', 'log', '-1'], { verbose: true })
 	await ensureAssistantInstalled()
+	await ensureTextInstalled()
 	await runOcc(['app:disable', 'firstrunwizard'])
 	await runOcc(['config:app:set', 'whiteboard', 'collabBackendUrl', '--value', 'http://localhost:3002'])
 	await runOcc(['config:app:set', 'whiteboard', 'jwt_secret_key', '--value', 'secret'])

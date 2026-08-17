@@ -26,8 +26,10 @@ OC.L10N.register(
     "Shared secret" : "Předsdílené heslo",
     "JWT secret key shared between Nextcloud and the WebSocket server for secure authentication." : "JWT tajný klíč sdílený mezi Nextcloud a WebSocket serverem pro zabezpečené ověřování.",
     "Save settings" : "Uložit nastavení",
+    "Libraries" : "Knihovny",
     "Uploading…" : "Nahrávání …",
     "Delete" : "Smazat",
+    "Canvases" : "Plátna",
     "Advanced settings" : "Pokročilá nastavení",
     "Max image size (MB)" : "Nejvyšší umožněná velikost obrázku (MB)",
     "An error occurred while creating the diagram" : "Při vytváření diagramu se vyskytla chyba",
@@ -242,10 +244,6 @@ OC.L10N.register(
     "Could not restore this version" : "Tuto verzi nebylo možné obnovit",
     "Version restored" : "Verze obnovena",
     "This table is currently being edited by {user}" : "Tato tabulka je v tuto chvíli upravována uživatelem {user}",
-    "Just now" : "Právě teď",
-    "minute ago" : "před minutou",
-    "minutes ago" : "před minutami",
-    "hour ago" : "před hodinou",
-    "hours ago" : "před hodinami"
+    "Just now" : "Právě teď"
 },
 "nplurals=4; plural=(n == 1 && n % 1 == 0) ? 0 : (n >= 2 && n <= 4 && n % 1 == 0) ? 1: (n % 1 != 0 ) ? 2 : 3;");
