@@ -179,7 +179,6 @@ export const ExcalidrawMenu = memo(function ExcalidrawMenu({ fileNameWithoutExte
 
 	return (
 		<MainMenu>
-			<MainMenu.DefaultItems.ToggleTheme />
 			<MainMenu.DefaultItems.ChangeCanvasBackground />
 			{!isDirectEditing && <>
 				<MainMenu.Item

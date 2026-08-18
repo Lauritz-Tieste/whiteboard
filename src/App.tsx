@@ -631,6 +631,7 @@ export default function App({
 
 		return {
 			loadScene: false,
+			toggleTheme: false,
 		}
 	}, [isVersionPreview])
 
