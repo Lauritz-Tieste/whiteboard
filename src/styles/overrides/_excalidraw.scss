@@ -188,6 +188,16 @@
 		margin-inline: 0.5rem;
 		justify-self: stretch;
 	}
+
+	.excalidraw .shapes-section.extra-tools-menu-open {
+		overflow: visible;
+	}
+
+	.excalidraw .App-toolbar__extra-tools-dropdown {
+		inset-block-start: auto;
+		inset-block-end: 0;
+		inset-inline-end: calc(100% + 0.5rem);
+	}
 }
 
 // The lock button lives inside the extra-tools dropdown now, so the divider

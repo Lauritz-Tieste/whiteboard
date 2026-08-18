@@ -97,32 +97,18 @@ function moveButtonsIntoDropdown(dropdown: HTMLElement) {
 	}
 }
 
-function positionDropdownForDockedRight(dropdown: HTMLElement) {
+function adjustDropdownForDockedRight() {
 	if (!document.querySelector('.whiteboard-toolbar-right')) {
 		return
 	}
-	const trigger = document.querySelector('.App-toolbar__extra-tools-trigger')
-	if (!trigger) {
-		return
-	}
-	// The toolbar section has a transform and clips its content, so move the
-	// menu under the .excalidraw root (keeps CSS variables, no clipping) and
-	// anchor it to the trigger to make it usable.
-	const excalidraw = document.querySelector('.excalidraw')
-	if (!excalidraw) {
-		return
-	}
-	if (dropdown.parentNode !== excalidraw) {
-		excalidraw.appendChild(dropdown)
-	}
-	const rect = trigger.getBoundingClientRect()
-	dropdown.style.position = 'fixed'
-	dropdown.style.top = 'auto'
-	dropdown.style.left = 'auto'
-	dropdown.style.bottom = `${Math.round(window.innerHeight - rect.bottom)}px`
-	dropdown.style.right = `${Math.round(window.innerWidth - rect.right)}px`
-	dropdown.style.marginTop = '0'
-	dropdown.style.zIndex = '1000'
+	// The toolbar section clips its content (overflow-y: auto), so let it
+	// overflow while the dropdown is open. The dropdown is repositioned next
+	// to the trigger via CSS (see _excalidraw.scss).
+	document.querySelector('.shapes-section')?.classList.add('extra-tools-menu-open')
+}
+
+function restoreDockedRightDropdown() {
+	document.querySelector('.shapes-section')?.classList.remove('extra-tools-menu-open')
 }
 
 function restoreButtonsToToolbar() {
@@ -155,10 +141,11 @@ function ensureExtraToolsObserver() {
 		if (dropdown && !isExtraToolsDropdownOpen) {
 			isExtraToolsDropdownOpen = true
 			moveButtonsIntoDropdown(dropdown)
-			positionDropdownForDockedRight(dropdown)
+			adjustDropdownForDockedRight()
 		} else if (!dropdown && isExtraToolsDropdownOpen) {
 			isExtraToolsDropdownOpen = false
 			restoreButtonsToToolbar()
+			restoreDockedRightDropdown()
 		}
 	})
 	extraToolsObserver.observe(document.body, { childList: true, subtree: true })
