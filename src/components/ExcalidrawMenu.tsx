@@ -6,7 +6,7 @@
 import { useCallback, useEffect, useRef, memo } from 'react'
 import type { KeyboardEvent as ReactKeyboardEvent } from 'react'
 import { Icon } from '@mdi/react'
-import { mdiMonitorScreenshot, mdiImageMultiple, mdiTimerOutline, mdiVote, mdiGrid, mdiMagnify } from '@mdi/js'
+import { mdiMonitorScreenshot, mdiImageMultiple, mdiTimerOutline, mdiVote, mdiGrid, mdiMagnify, mdiDockRight, mdiDockLeft } from '@mdi/js'
 import { MainMenu, CaptureUpdateAction } from '@nextcloud/excalidraw'
 import { RecordingMenuItem } from './Recording'
 import { PresentationMenuItem } from './Presentation'
@@ -27,9 +27,11 @@ interface ExcalidrawMenuProps {
 	onToggleTimer: () => void
 	gridModeEnabled: boolean
 	onToggleGrid: () => void
+	isToolbarDockedRight: boolean
+	onToggleToolbarDock: () => void
 }
 
-export const ExcalidrawMenu = memo(function ExcalidrawMenu({ fileNameWithoutExtension, recordingState, presentationState, isTimerVisible, onToggleTimer, gridModeEnabled, onToggleGrid }: ExcalidrawMenuProps) {
+export const ExcalidrawMenu = memo(function ExcalidrawMenu({ fileNameWithoutExtension, recordingState, presentationState, isTimerVisible, onToggleTimer, gridModeEnabled, onToggleGrid, isToolbarDockedRight, onToggleToolbarDock }: ExcalidrawMenuProps) {
 	const isMacPlatform = typeof navigator !== 'undefined' && (navigator.userAgentData?.platform === 'macOS' || /Mac|iPhone|iPad/.test(navigator.platform ?? ''))
 	const isDirectEditing = loadState('whiteboard', 'directEditing', false)
 	const { excalidrawAPI } = useExcalidrawStore(useShallow(state => ({
@@ -235,6 +237,11 @@ export const ExcalidrawMenu = memo(function ExcalidrawMenu({ fileNameWithoutExte
 				icon={<Icon path={mdiGrid} size={0.75} />}
 				onSelect={onToggleGrid}>
 				{gridModeEnabled ? t('whiteboard', 'Hide grid') : t('whiteboard', 'Show grid')}
+			</MainMenu.Item>
+			<MainMenu.Item
+				icon={<Icon path={isToolbarDockedRight ? mdiDockLeft : mdiDockRight} size={0.75} />}
+				onSelect={onToggleToolbarDock}>
+				{isToolbarDockedRight ? t('whiteboard', 'Toolbar on top') : t('whiteboard', 'Toolbar on the right')}
 			</MainMenu.Item>
 			<MainMenu.DefaultItems.Help />
 		</MainMenu>

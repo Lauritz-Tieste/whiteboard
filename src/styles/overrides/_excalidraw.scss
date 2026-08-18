@@ -156,6 +156,33 @@
 	display: none !important;
 }
 
+.whiteboard-toolbar-right {
+	.excalidraw .App-menu_top {
+		grid-template-columns: 1fr 1fr;
+	}
+
+	.excalidraw .shapes-section {
+		position: absolute;
+		inset-inline-end: 0.75rem;
+		top: 50%;
+		transform: translateY(-50%);
+		max-height: calc(100% - 1.5rem);
+		overflow-y: auto;
+		z-index: 5;
+	}
+
+	.excalidraw .shapes-section .Stack_horizontal {
+		grid-auto-flow: row;
+		grid-auto-rows: min-content;
+		grid-auto-columns: auto;
+	}
+
+	.excalidraw .shapes-section .App-toolbar__divider {
+		width: 100%;
+		height: 1px;
+	}
+}
+
 .excalidraw .dropdown-menu-button {
 	background: transparent !important;
 	border: none !important;

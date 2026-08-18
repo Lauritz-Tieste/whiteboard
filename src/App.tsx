@@ -144,6 +144,7 @@ export default function App({
 	// actually surface org templates.
 	const canSaveOrg = useMemo(() => loadState<boolean>('whiteboard', 'isAdmin', false)
 		&& loadState<boolean>('whiteboard', 'orgTemplatesSupported', true), [])
+	const [isToolbarDockedRight, setIsToolbarDockedRight] = useState(false)
 	const [libraryDialogOpen, setLibraryDialogOpen] = useState(false)
 	const [canvasTemplateDialogOpen, setCanvasTemplateDialogOpen] = useState(false)
 	const [saveDialogError, setSaveDialogError] = useState<string | null>(null)
@@ -697,7 +698,7 @@ export default function App({
 
 	return (
 		<div className={appClassName} style={{ display: 'flex', flexDirection: 'column' }}>
-			<div className="excalidraw-wrapper" style={{ flex: 1, height: '100%', position: 'relative' }}>
+			<div className={`excalidraw-wrapper${isToolbarDockedRight ? ' whiteboard-toolbar-right' : ''}`} style={{ flex: 1, height: '100%', position: 'relative' }}>
 				{!isVersionPreview && <MemoizedNetworkStatusIndicator />}
 				<MemoizedAuthErrorNotification />
 				{isVersionPreview && (
@@ -780,6 +781,8 @@ export default function App({
 							onToggleTimer={handleToggleTimer}
 							gridModeEnabled={gridModeEnabled}
 							onToggleGrid={() => setGridModeEnabled(!gridModeEnabled)}
+							isToolbarDockedRight={isToolbarDockedRight}
+							onToggleToolbarDock={() => setIsToolbarDockedRight(!isToolbarDockedRight)}
 						/>
 					)}
 				</Excalidraw>
