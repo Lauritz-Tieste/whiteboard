@@ -35,6 +35,7 @@ import { useShallow } from 'zustand/react/shallow'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import { useBoardDataManager } from './hooks/useBoardDataManager'
 import { useAssistant } from './hooks/useAssistant'
+import { renderLockButton } from './components/ToolbarButton'
 import logger from './utils/logger'
 import { prepareDuplicatedElements } from './utils/mergeElementsWithMetadata.ts'
 import { useRecording } from './hooks/useRecording'
@@ -439,6 +440,7 @@ export default function App({
 			renderAssistant()
 			renderComment()
 			renderEmojiPicker()
+			renderLockButton()
 		}
 
 		renderCustomElements()

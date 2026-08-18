@@ -5,6 +5,8 @@
 
 import { createRoot, type Root } from 'react-dom/client'
 import { Icon } from '@mdi/react'
+import { mdiLock, mdiLockOpen } from '@mdi/js'
+import { t } from '@nextcloud/l10n'
 import { useExcalidrawStore } from '../stores/useExcalidrawStore'
 import type { ExcalidrawImperativeAPI } from '@nextcloud/excalidraw/dist/types/excalidraw/types'
 
@@ -26,27 +28,17 @@ export function resetActiveTool() {
 
 // Tools that are rendered into the main toolbar but should live inside
 // Excalidraw's extra-tools ("Weitere Werkzeuge") dropdown instead.
-const EXTRA_TOOLS_BUTTON_SELECTOR = '.smart-picker-container, .comment-container, .emoji-picker-container, .table-container'
+const EXTRA_TOOLS_BUTTON_SELECTOR = '.smart-picker-container, .comment-container, .emoji-picker-container, .table-container, .lock-container'
 
 let extraToolsObserver: MutationObserver | null = null
 let isExtraToolsDropdownOpen = false
 let movedButtons: HTMLElement[] = []
-let movedLockButton: HTMLElement | null = null
-let movedLockRestore: { parent: HTMLElement, nextSibling: ChildNode | null } | null = null
 
 function getExtraToolsDropdown(): HTMLElement | null {
 	return document.querySelector('.App-toolbar__extra-tools-dropdown')
 }
 
-function getLockButton(): HTMLElement | null {
-	return document.querySelector<HTMLElement>('[data-testid="toolbar-lock"]')?.closest('label') ?? null
-}
-
 function getItemText(container: HTMLElement): string | null {
-	const lockInput = container.querySelector('[data-testid="toolbar-lock"]')
-	if (lockInput) {
-		return lockInput.getAttribute('aria-label')
-	}
 	const button = container.querySelector('.dropdown-menu-button')
 	return button?.getAttribute('title') ?? button?.getAttribute('aria-label') ?? null
 }
@@ -85,16 +77,6 @@ function moveButtonsIntoDropdown(dropdown: HTMLElement) {
 		movedButtons.push(button)
 		ensureItemLabel(button)
 	})
-
-	const lock = getLockButton()
-	if (lock) {
-		if (!movedLockButton) {
-			movedLockRestore = { parent: lock.parentNode as HTMLElement, nextSibling: lock.nextSibling }
-			movedLockButton = lock
-		}
-		moveInto(movedLockButton)
-		ensureItemLabel(movedLockButton)
-	}
 }
 
 function adjustDropdownForDockedRight() {
@@ -119,16 +101,6 @@ function restoreButtonsToToolbar() {
 		}
 	})
 	movedButtons = []
-
-	if (movedLockButton && movedLockRestore && !movedLockButton.isConnected) {
-		if (movedLockRestore.nextSibling && movedLockRestore.nextSibling.parentNode === movedLockRestore.parent) {
-			movedLockRestore.parent.insertBefore(movedLockButton, movedLockRestore.nextSibling)
-		} else {
-			movedLockRestore.parent.appendChild(movedLockButton)
-		}
-	}
-	movedLockButton = null
-	movedLockRestore = null
 }
 
 function ensureExtraToolsObserver() {
@@ -188,4 +160,46 @@ export function renderToolbarButton(config: ToolbarButtonConfig): Root | null {
 		</button>,
 	)
 	return root
+}
+
+/**
+ * Renders a lock toggle for the extra-tools dropdown.
+ *
+ * The native Excalidraw lock button must stay in place (it is part of the
+ * React tree, moving it breaks unmounting), so this renders a separate button
+ * that toggles the native lock checkbox instead.
+ */
+export function renderLockButton() {
+	if (document.querySelector('.lock-container')) {
+		return
+	}
+	const extraToolsTrigger = document.querySelector('.App-toolbar__extra-tools-trigger')
+	if (!extraToolsTrigger?.parentNode) {
+		return
+	}
+
+	ensureExtraToolsObserver()
+
+	const container = document.createElement('label')
+	container.classList.add('ToolIcon', 'Shape', 'lock-container')
+	extraToolsTrigger.parentNode.insertBefore(container, extraToolsTrigger)
+
+	const root = createRoot(container)
+	const render = () => {
+		const locked = document.querySelector<HTMLInputElement>('[data-testid="toolbar-lock"]')?.checked ?? false
+		root.render(
+			<button
+				className="dropdown-menu-button"
+				aria-label={t('whiteboard', 'Lock canvas')}
+				title={t('whiteboard', 'Lock canvas')}
+				onClick={() => {
+					resetActiveTool()
+					document.querySelector<HTMLInputElement>('[data-testid="toolbar-lock"]')?.click()
+					render()
+				}}>
+				<Icon path={locked ? mdiLock : mdiLockOpen} size={1} />
+			</button>,
+		)
+	}
+	render()
 }

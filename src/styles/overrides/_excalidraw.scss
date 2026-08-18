@@ -160,6 +160,12 @@
 	display: none !important;
 }
 
+// Remove the context help texts (e.g. the "pan the canvas with the mouse
+// wheel" hint) entirely.
+.excalidraw .HintViewer {
+	display: none !important;
+}
+
 .whiteboard-toolbar-right {
 	.excalidraw .App-menu_top {
 		grid-template-columns: 1fr 1fr;
@@ -200,8 +206,13 @@
 	}
 }
 
-// The lock button lives inside the extra-tools dropdown now, so the divider
-// that separated it from the hand tool is orphaned in the toolbar.
+// The lock button lives inside the extra-tools dropdown now (as a custom
+// `lock-container` entry), so the native desktop lock button and the divider
+// that separated it from the hand tool are hidden in the toolbar.
+.excalidraw .shapes-section .ToolIcon__lock {
+	display: none;
+}
+
 .excalidraw .ToolIcon__lock + .App-toolbar__divider {
 	display: none;
 }
@@ -213,7 +224,7 @@
 .excalidraw .comment-container:not(.App-toolbar__extra-tools-dropdown *),
 .excalidraw .emoji-picker-container:not(.App-toolbar__extra-tools-dropdown *),
 .excalidraw .table-container:not(.App-toolbar__extra-tools-dropdown *),
-.excalidraw .ToolIcon__lock:not(.App-toolbar__extra-tools-dropdown *) {
+.excalidraw .lock-container:not(.App-toolbar__extra-tools-dropdown *) {
 	display: none;
 }
 
@@ -222,7 +233,7 @@
 	.comment-container,
 	.emoji-picker-container,
 	.table-container,
-	.ToolIcon__lock {
+	.lock-container {
 		display: flex;
 		align-items: center;
 		gap: 0.75rem;
