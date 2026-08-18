@@ -15,10 +15,14 @@
 	--color-primary: var(--color-primary-element) !important;
 	--color-primary-darker: var(--color-primary-element-hover) !important;
 	--color-primary-darkest: var(----color-primary-element-hover) !important;
-	--color-primary-light: var(--color-primary-element-light) !important;
-	--color-surface-primary-container: var(--color-primary-element-light);
-	--color-surface-low: var(--color-primary-element-light);
-	--color-surface-high: var(--color-primary-element-light-hover) !important;
+	// The whiteboard always renders light. Nextcloud's --color-primary-element-light
+	// is mixed against the main background, so it turns DARK in Nextcloud dark mode
+	// and would make Excalidraw's chrome (selected buttons, library, zoom controls)
+	// dark while the canvas stays light. Pin these to Excalidraw's light-theme values.
+	--color-primary-light: #e3e2fe !important;
+	--color-surface-primary-container: #e0dfff !important;
+	--color-surface-low: #ececf4 !important;
+	--color-surface-high: #f1f0ff !important;
 	--border-radius-lg: var(--border-radius-large);
 	--border-radius-md: var(--border-radius);
 
@@ -74,14 +78,14 @@
 	[role="menuitem"] {
 		svg {
 			opacity: 1 !important;
-			color: var(--color-main-text) !important;
+			color: var(--popup-text-color) !important;
 			width: 18px !important;
 			height: 18px !important;
 		}
 
 		kbd {
 			opacity: 1 !important;
-			color: var(--color-text-maxcontrast) !important;
+			color: var(--popup-text-color) !important;
 			font-family: inherit !important;
 
 			// Hide verbose text and show symbols instead
@@ -95,7 +99,7 @@
 	.dropdown-menu [role="menuitem"]:has(svg) {
 		svg {
 			opacity: 1 !important;
-			color: var(--color-main-text) !important;
+			color: var(--popup-text-color) !important;
 			width: 18px !important;
 			height: 18px !important;
 			min-width: 18px !important;
@@ -119,7 +123,7 @@
 		calc(var(--default-grid-baseline) / 2) !important;
 	padding: calc(var(--default-grid-baseline))
 		calc(var(--default-grid-baseline)) !important;
-	background-color: var(--color-main-background) !important;
+	background-color: #ffffff !important;
 	cursor: default !important;
 	border: none !important;
 
@@ -129,7 +133,7 @@
 }
 
 .excalidraw .context-menu-item-separator {
-	border-top: calc(var(--default-grid-baseline) / 8) solid var(--color-border) !important;
+	border-top: calc(var(--default-grid-baseline) / 8) solid #ebebeb !important;
 	margin-top: calc(var(--default-grid-baseline)) !important;
 	margin-bottom: calc(var(--default-grid-baseline)) !important;
 }
@@ -142,7 +146,7 @@
 }
 
 .excalidraw .context-menu-item:hover {
-	background-color: var(--color-background-hover) !important;
+	background-color: #f5f5f5 !important;
 	border-radius: var(--border-radius-large) !important;
 }
 
@@ -178,9 +182,18 @@
 	}
 
 	.excalidraw .shapes-section .App-toolbar__divider {
-		width: 100%;
+		width: auto;
 		height: 1px;
+		margin-block: 0.25rem;
+		margin-inline: 0.5rem;
+		justify-self: stretch;
 	}
+}
+
+// The lock button lives inside the extra-tools dropdown now, so the divider
+// that separated it from the hand tool is orphaned in the toolbar.
+.excalidraw .ToolIcon__lock + .App-toolbar__divider {
+	display: none;
 }
 
 // Whiteboard tools that live inside the extra-tools ("Weitere Werkzeuge")
@@ -233,8 +246,8 @@
 		}
 
 		svg {
-			width: 1rem;
-			height: 1rem;
+			width: 0.875rem !important;
+			height: 0.875rem !important;
 			display: block;
 		}
 

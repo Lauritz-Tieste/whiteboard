@@ -42,11 +42,48 @@ function getLockButton(): HTMLElement | null {
 	return document.querySelector<HTMLElement>('[data-testid="toolbar-lock"]')?.closest('label') ?? null
 }
 
+function getItemText(container: HTMLElement): string | null {
+	const lockInput = container.querySelector('[data-testid="toolbar-lock"]')
+	if (lockInput) {
+		return lockInput.getAttribute('aria-label')
+	}
+	const button = container.querySelector('.dropdown-menu-button')
+	return button?.getAttribute('title') ?? button?.getAttribute('aria-label') ?? null
+}
+
+function ensureItemLabel(container: HTMLElement) {
+	if (container.querySelector('.dropdown-menu-item__text')) {
+		return
+	}
+	const text = getItemText(container)
+	if (!text) {
+		return
+	}
+	const span = document.createElement('span')
+	span.className = 'dropdown-menu-item__text'
+	span.textContent = text
+	container.appendChild(span)
+}
+
 function moveButtonsIntoDropdown(dropdown: HTMLElement) {
+	const container = dropdown.querySelector<HTMLElement>('.dropdown-menu-container') ?? dropdown
+	const laserItem = container.querySelector('[data-testid="toolbar-laser"]')
+	let insertPoint: ChildNode | null = laserItem?.nextSibling ?? null
+
+	const moveInto = (button: HTMLElement) => {
+		if (insertPoint) {
+			container.insertBefore(button, insertPoint)
+		} else {
+			container.appendChild(button)
+		}
+		insertPoint = button.nextSibling
+	}
+
 	const buttons = Array.from(document.querySelectorAll<HTMLElement>(EXTRA_TOOLS_BUTTON_SELECTOR))
 	buttons.forEach(button => {
-		dropdown.appendChild(button)
+		moveInto(button)
 		movedButtons.push(button)
+		ensureItemLabel(button)
 	})
 
 	const lock = getLockButton()
@@ -55,8 +92,37 @@ function moveButtonsIntoDropdown(dropdown: HTMLElement) {
 			movedLockRestore = { parent: lock.parentNode as HTMLElement, nextSibling: lock.nextSibling }
 			movedLockButton = lock
 		}
-		dropdown.appendChild(movedLockButton)
+		moveInto(movedLockButton)
+		ensureItemLabel(movedLockButton)
 	}
+}
+
+function positionDropdownForDockedRight(dropdown: HTMLElement) {
+	if (!document.querySelector('.whiteboard-toolbar-right')) {
+		return
+	}
+	const trigger = document.querySelector('.App-toolbar__extra-tools-trigger')
+	if (!trigger) {
+		return
+	}
+	// The toolbar section has a transform and clips its content, so move the
+	// menu under the .excalidraw root (keeps CSS variables, no clipping) and
+	// anchor it to the trigger to make it usable.
+	const excalidraw = document.querySelector('.excalidraw')
+	if (!excalidraw) {
+		return
+	}
+	if (dropdown.parentNode !== excalidraw) {
+		excalidraw.appendChild(dropdown)
+	}
+	const rect = trigger.getBoundingClientRect()
+	dropdown.style.position = 'fixed'
+	dropdown.style.top = 'auto'
+	dropdown.style.left = 'auto'
+	dropdown.style.bottom = `${Math.round(window.innerHeight - rect.bottom)}px`
+	dropdown.style.right = `${Math.round(window.innerWidth - rect.right)}px`
+	dropdown.style.marginTop = '0'
+	dropdown.style.zIndex = '1000'
 }
 
 function restoreButtonsToToolbar() {
@@ -89,6 +155,7 @@ function ensureExtraToolsObserver() {
 		if (dropdown && !isExtraToolsDropdownOpen) {
 			isExtraToolsDropdownOpen = true
 			moveButtonsIntoDropdown(dropdown)
+			positionDropdownForDockedRight(dropdown)
 		} else if (!dropdown && isExtraToolsDropdownOpen) {
 			isExtraToolsDropdownOpen = false
 			restoreButtonsToToolbar()
