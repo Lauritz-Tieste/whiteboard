@@ -179,6 +179,9 @@
 		max-height: calc(100% - 1.5rem);
 		overflow-y: auto;
 		z-index: 5;
+		background-color: var(--island-bg-color);
+		box-shadow: var(--shadow-island);
+		border-radius: var(--border-radius-lg);
 	}
 
 	.excalidraw .shapes-section .Stack_horizontal {
