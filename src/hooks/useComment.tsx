@@ -172,6 +172,7 @@ function createPinElement(
 	const pin = document.createElement('div')
 	pin.className = `comment-pin ${isActive ? 'active' : ''}`
 	pin.dataset.commentThreadId = thread.id
+	pin.setAttribute('data-prevent-outside-click', '')
 	pin.style.left = `${x}px`
 	pin.style.top = `${y}px`
 
@@ -494,6 +495,7 @@ export function useComment(props?: UseCommentProps) {
 		if (!pinsContainer) {
 			pinsContainer = document.createElement('div')
 			pinsContainer.className = 'comment-pins-container'
+			pinsContainer.setAttribute('data-prevent-outside-click', '')
 			canvasElement.appendChild(pinsContainer)
 		}
 
@@ -573,6 +575,7 @@ export function useComment(props?: UseCommentProps) {
 		}
 
 		canvasElement.style.cursor = 'crosshair'
+		canvasElement.setAttribute('data-prevent-outside-click', '')
 
 		const handleCanvasClick = (e: PointerEvent) => {
 			const target = e.target as HTMLElement
@@ -611,7 +614,10 @@ export function useComment(props?: UseCommentProps) {
 
 		return () => {
 			document.removeEventListener('click', handleCanvasClick)
-			if (canvasElement) canvasElement.style.cursor = ''
+			if (canvasElement) {
+				canvasElement.style.cursor = ''
+				canvasElement.removeAttribute('data-prevent-outside-click')
+			}
 		}
 	}, [isPlacingComment, excalidrawAPI, onCommentThreadClick])
 
@@ -718,6 +724,7 @@ export function useComment(props?: UseCommentProps) {
 
 		const popoverContainer = document.createElement('div')
 		popoverContainer.className = 'comment-popover-container'
+		popoverContainer.setAttribute('data-prevent-outside-click', '')
 		canvasElement.appendChild(popoverContainer)
 
 		const root = createRoot(popoverContainer)
