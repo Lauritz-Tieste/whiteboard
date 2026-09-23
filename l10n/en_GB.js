@@ -168,6 +168,8 @@ OC.L10N.register(
     "Show timer" : "Show timer",
     "Hide grid" : "Hide grid",
     "Show grid" : "Show grid",
+    "Disable snapping" : "Disable snapping",
+    "Enable snapping" : "Enable snapping",
     "Offline" : "Offline",
     "Offline - Changes saved locally." : "Offline - Changes saved locally.",
     "Connecting" : "Connecting",

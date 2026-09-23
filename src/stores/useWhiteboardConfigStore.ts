@@ -29,6 +29,7 @@ interface WhiteboardConfigState {
 	// UI state
 	zenModeEnabled: boolean
 	gridModeEnabled: boolean
+	snapModeEnabled: boolean
 
 	// Core actions
 	setConfig: (
@@ -54,6 +55,7 @@ interface WhiteboardConfigState {
 	// UI actions
 	setZenModeEnabled: (enabled: boolean) => void
 	setGridModeEnabled: (enabled: boolean) => void
+	setSnapModeEnabled: (enabled: boolean) => void
 
 	// Permission actions
 	setReadOnly: (readOnly: boolean) => void
@@ -78,6 +80,7 @@ export const useWhiteboardConfigStore = create<WhiteboardConfigState>()((set, ge
 	// UI state
 	zenModeEnabled: false,
 	gridModeEnabled: false,
+	snapModeEnabled: true,
 
 	// Core actions
 	setConfig: (config: Partial<Pick<WhiteboardConfigState,
@@ -94,11 +97,14 @@ export const useWhiteboardConfigStore = create<WhiteboardConfigState>()((set, ge
 	},
 
 	resolveInitialData: (data: ExcalidrawInitialDataState) => {
-		const { initialDataPromise, pendingInitialDataPromises } = get()
+		const { initialDataPromise, pendingInitialDataPromises, snapModeEnabled } = get()
+		const resolvedData = data?.appState
+			? { ...data, appState: { ...data.appState, objectsSnapModeEnabled: snapModeEnabled } }
+			: data
 		pendingInitialDataPromises.forEach((promise) => {
-			promise.resolve(data)
+			promise.resolve(resolvedData)
 		})
-		initialDataPromise.resolve(data)
+		initialDataPromise.resolve(resolvedData)
 		if (pendingInitialDataPromises.length > 0) {
 			set({ pendingInitialDataPromises: [] })
 		}
@@ -134,6 +140,7 @@ export const useWhiteboardConfigStore = create<WhiteboardConfigState>()((set, ge
 			libraryRef: null,
 			zenModeEnabled: false,
 			gridModeEnabled: false,
+			snapModeEnabled: true,
 		})
 	},
 
@@ -143,6 +150,8 @@ export const useWhiteboardConfigStore = create<WhiteboardConfigState>()((set, ge
 	setZenModeEnabled: (enabled: boolean) => set({ zenModeEnabled: enabled }),
 
 	setGridModeEnabled: (enabled: boolean) => set({ gridModeEnabled: enabled }),
+
+	setSnapModeEnabled: (enabled: boolean) => set({ snapModeEnabled: enabled }),
 
 	// Permission actions
 	setReadOnly: (readOnly: boolean) => {

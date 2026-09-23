@@ -168,6 +168,8 @@ OC.L10N.register(
     "Show timer" : "Timer anzeigen",
     "Hide grid" : "Gitter ausblenden",
     "Show grid" : "Gitter anzeigen",
+    "Disable snapping" : "Einrasten deaktivieren",
+    "Enable snapping" : "Einrasten aktivieren",
     "Offline" : "Offline",
     "Offline - Changes saved locally." : "Offline - Änderungen werden lokal gespeichert.",
     "Connecting" : "Verbinde",

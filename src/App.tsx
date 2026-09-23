@@ -110,17 +110,21 @@ export default function App({
 	const {
 		setConfig,
 		gridModeEnabled,
+		snapModeEnabled,
 		initialDataPromise,
 		resetInitialDataPromise,
 		resetStore,
 		setGridModeEnabled,
+		setSnapModeEnabled,
 	} = useWhiteboardConfigStore(useShallow(state => ({
 		setConfig: state.setConfig,
 		gridModeEnabled: state.gridModeEnabled,
+		snapModeEnabled: state.snapModeEnabled,
 		initialDataPromise: state.initialDataPromise,
 		resetInitialDataPromise: state.resetInitialDataPromise,
 		resetStore: state.resetStore,
 		setGridModeEnabled: state.setGridModeEnabled,
+		setSnapModeEnabled: state.setSnapModeEnabled,
 	})))
 
 	const { lang, updateLang } = useLangStore(useShallow(state => ({
@@ -316,6 +320,14 @@ export default function App({
 			callMobileMessage('loaded')
 		}
 	}, [isLoading])
+
+	useEffect(() => {
+		if (isLoading || !excalidrawAPI) {
+			return
+		}
+
+		excalidrawAPI.updateScene({ appState: { objectsSnapModeEnabled: snapModeEnabled } })
+	}, [snapModeEnabled, excalidrawAPI, isLoading])
 
 	// Effect to handle fileId changes - cleanup previous board data
 	useEffect(() => {
@@ -724,6 +736,7 @@ export default function App({
 					onChange={handleOnChange}
 					viewModeEnabled={isReadOnly}
 					gridModeEnabled={gridModeEnabled}
+					objectsSnapModeEnabled={snapModeEnabled}
 					theme={theme}
 					name={fileNameWithoutExtension}
 					UIOptions={{
@@ -783,6 +796,8 @@ export default function App({
 							onToggleTimer={handleToggleTimer}
 							gridModeEnabled={gridModeEnabled}
 							onToggleGrid={() => setGridModeEnabled(!gridModeEnabled)}
+							snapModeEnabled={snapModeEnabled}
+							onToggleSnap={() => setSnapModeEnabled(!snapModeEnabled)}
 							isToolbarDockedRight={isToolbarDockedRight}
 							onToggleToolbarDock={() => setIsToolbarDockedRight(!isToolbarDockedRight)}
 						/>

@@ -6,7 +6,7 @@
 import { useCallback, useEffect, useRef, memo } from 'react'
 import type { KeyboardEvent as ReactKeyboardEvent } from 'react'
 import { Icon } from '@mdi/react'
-import { mdiMonitorScreenshot, mdiImageMultiple, mdiTimerOutline, mdiVote, mdiGrid, mdiMagnify, mdiDockRight, mdiDockLeft } from '@mdi/js'
+import { mdiDockLeft, mdiDockRight, mdiGrid, mdiImageMultiple, mdiMagnet, mdiMagnify, mdiMonitorScreenshot, mdiTimerOutline, mdiVote } from '@mdi/js'
 import { MainMenu, CaptureUpdateAction } from '@nextcloud/excalidraw'
 import { RecordingMenuItem } from './Recording'
 import { PresentationMenuItem } from './Presentation'
@@ -27,11 +27,13 @@ interface ExcalidrawMenuProps {
 	onToggleTimer: () => void
 	gridModeEnabled: boolean
 	onToggleGrid: () => void
+	snapModeEnabled: boolean
+	onToggleSnap: () => void
 	isToolbarDockedRight: boolean
 	onToggleToolbarDock: () => void
 }
 
-export const ExcalidrawMenu = memo(function ExcalidrawMenu({ fileNameWithoutExtension, recordingState, presentationState, isTimerVisible, onToggleTimer, gridModeEnabled, onToggleGrid, isToolbarDockedRight, onToggleToolbarDock }: ExcalidrawMenuProps) {
+export const ExcalidrawMenu = memo(function ExcalidrawMenu({ fileNameWithoutExtension, recordingState, presentationState, isTimerVisible, onToggleTimer, gridModeEnabled, onToggleGrid, snapModeEnabled, onToggleSnap, isToolbarDockedRight, onToggleToolbarDock }: ExcalidrawMenuProps) {
 	const isMacPlatform = typeof navigator !== 'undefined' && (navigator.userAgentData?.platform === 'macOS' || /Mac|iPhone|iPad/.test(navigator.platform ?? ''))
 	const isDirectEditing = loadState('whiteboard', 'directEditing', false)
 	const { excalidrawAPI } = useExcalidrawStore(useShallow(state => ({
@@ -237,6 +239,11 @@ export const ExcalidrawMenu = memo(function ExcalidrawMenu({ fileNameWithoutExte
 				icon={<Icon path={mdiGrid} size={0.75} />}
 				onSelect={onToggleGrid}>
 				{gridModeEnabled ? t('whiteboard', 'Hide grid') : t('whiteboard', 'Show grid')}
+			</MainMenu.Item>
+			<MainMenu.Item
+				icon={<Icon path={mdiMagnet} size={0.75} />}
+				onSelect={onToggleSnap}>
+				{snapModeEnabled ? t('whiteboard', 'Disable snapping') : t('whiteboard', 'Enable snapping')}
 			</MainMenu.Item>
 			<MainMenu.Item
 				icon={<Icon path={isToolbarDockedRight ? mdiDockLeft : mdiDockRight} size={0.75} />}
