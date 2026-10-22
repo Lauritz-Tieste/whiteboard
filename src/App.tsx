@@ -25,7 +25,6 @@ import { useLangStore } from './stores/useLangStore'
 import { NetworkStatusIndicator } from './components/NetworkStatusIndicator'
 import { AuthErrorNotification } from './components/AuthErrorNotification'
 import { useSync } from './hooks/useSync'
-import { useSyncStore } from './stores/useSyncStore'
 import { useLibrary } from './hooks/useLibrary'
 import { useLibraryCatalog } from './hooks/useLibraryCatalog'
 import { useCanvasTemplate } from './hooks/useCanvasTemplate'
@@ -38,6 +37,7 @@ import { useAssistant } from './hooks/useAssistant'
 import { renderLockButton } from './components/ToolbarButton'
 import logger from './utils/logger'
 import { prepareDuplicatedElements } from './utils/mergeElementsWithMetadata.ts'
+import { resolveOrgLibraryItems } from './utils/orgLibraryItems.ts'
 import { useRecording } from './hooks/useRecording'
 import { RecordingOverlay } from './components/Recording'
 import { usePresentation } from './hooks/usePresentation'
@@ -132,10 +132,6 @@ export default function App({
 		updateLang: state.updateLang,
 	})))
 
-	const { terminateWorker } = useSyncStore(useShallow(state => ({
-		terminateWorker: state.terminateWorker,
-	})))
-
 	const { theme } = useThemeHandling()
 	const { renderSmartPicker } = useSmartPicker()
 	const { renderTable } = useTableInsertion()
@@ -143,7 +139,7 @@ export default function App({
 	const { renderEmojiPicker } = useEmojiPicker()
 	const { onChange: onChangeSync, onPointerUpdate } = useSync()
 	const { fetchLibraryItems, updateLibraryItems, isLibraryLoaded, setIsLibraryLoaded } = useLibrary()
-	const { resolveLibrary, saveLibrary } = useLibraryCatalog()
+	const { fetchLibraries, resolveLibrary, saveLibrary } = useLibraryCatalog()
 	const { publishCanvasTemplate } = useCanvasTemplate()
 	// Org saves need admin rights and a server (30+) whose picker can
 	// actually surface org templates.
@@ -271,9 +267,10 @@ export default function App({
 
 	useEffect(() => {
 		const onRestoreRequested = (payload: any) => {
-			const payloadFileId = Number(payload?.fileInfo?.id)
-			const mimetype = payload?.fileInfo?.mimetype
-			const fileName = payload?.fileInfo?.name ?? ''
+			// Nextcloud 33 and later send the file as a node
+			const payloadFileId = Number(payload?.fileInfo?.id ?? payload?.node?.fileid)
+			const mimetype = payload?.fileInfo?.mimetype ?? payload?.node?.mime
+			const fileName = payload?.fileInfo?.name ?? payload?.node?.basename ?? ''
 			const source = payload?.version?.source ?? payload?.version?.url ?? null
 			const versionId = payload?.version?.fileVersion ?? null
 
@@ -311,7 +308,6 @@ export default function App({
 
 	// Use the board data manager hook
 	const {
-		saveOnUnmount,
 		isLoading,
 	} = useBoardDataManager()
 
@@ -340,14 +336,7 @@ export default function App({
 
 		// Reset the initialDataPromise to ensure clean state
 		resetInitialDataPromise()
-
-		return () => {
-			// Save current board data before switching
-			if (excalidrawAPI) {
-				saveOnUnmount()
-			}
-		}
-	}, [normalizedFileId, excalidrawAPI, resetInitialDataPromise, saveOnUnmount, setIsLibraryLoaded])
+	}, [normalizedFileId, excalidrawAPI, resetInitialDataPromise, setIsLibraryLoaded])
 
 	useEffect(() => {
 		if (isLoading || !excalidrawAPI) {
@@ -362,8 +351,9 @@ export default function App({
 			try {
 				// Authoritative palette (merge:false): the writable "My library"
 				// (untagged) plus, if this board was created from a saved library,
-				// that library's CURRENT items resolved live (tagged libraryName ->
-				// rendered as a read-only section, never written back into My library).
+				// that library's CURRENT items resolved live, plus every organization
+				// library (tagged libraryName -> rendered as a read-only section,
+				// never written back into My library).
 				const myLibrary = (await fetchLibraryItems()) ?? []
 				const ref = useWhiteboardConfigStore.getState().libraryRef
 				let refItems: LibraryItems = []
@@ -371,16 +361,17 @@ export default function App({
 					try {
 						refItems = await resolveLibrary(ref.scope, ref.name)
 					} catch (error) {
-						// Board still opens with the personal library only.
 						showError(t('whiteboard', 'Could not load the library "{name}".', { name: ref.name }))
 						logger.error('[App] Error resolving library reference:', error)
 					}
 				}
+				const { org } = await fetchLibraries()
+				const orgItems = await resolveOrgLibraryItems(org, ref, resolveLibrary)
 				if (cancelled) {
 					return
 				}
 				await excalidrawAPI.updateLibrary({
-					libraryItems: [...myLibrary, ...refItems],
+					libraryItems: [...myLibrary, ...refItems, ...orgItems],
 					merge: false,
 				})
 				setIsLibraryLoaded(true)
@@ -395,6 +386,7 @@ export default function App({
 	}, [
 		fileName,
 		fetchLibraryItems,
+		fetchLibraries,
 		resolveLibrary,
 		isLoading,
 		excalidrawAPI,
@@ -404,17 +396,11 @@ export default function App({
 
 	useEffect(() => {
 		return () => {
-			// Save any pending changes before resetting stores
-			saveOnUnmount()
-
 			// Reset all stores
 			resetStore()
 			resetExcalidrawAPI()
-
-			// Terminate the worker
-			terminateWorker()
 		}
-	}, [resetStore, resetExcalidrawAPI, terminateWorker, saveOnUnmount])
+	}, [resetStore, resetExcalidrawAPI])
 
 	const [activeCommentThreadId, setActiveCommentThreadId] = useState<string | null>(null)
 	const [commentSidebarDocked, setCommentSidebarDocked] = useState(false)
