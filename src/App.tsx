@@ -107,6 +107,55 @@ export default function App({
 		resetExcalidrawAPI: state.resetExcalidrawAPI,
 	})))
 
+	// Elements must be clicked (selected) once before they can be dragged:
+	// a plain press+drag on an UNselected element only selects it. The press
+	// is swallowed in the capture phase so Excalidraw never starts moving
+	// the element; a subsequent press (now selected) drags normally. Text
+	// elements and modifier keys keep their native behaviour.
+	const handleSelectionFirstPointerDown = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
+		if (!excalidrawAPI) {
+			return
+		}
+
+		const appState = excalidrawAPI.getAppState()
+		if (appState.activeTool?.type !== 'selection') {
+			return
+		}
+		if (event.button !== 0) {
+			return
+		}
+		if (event.shiftKey || event.ctrlKey || event.metaKey || event.altKey) {
+			return
+		}
+
+		const zoom = appState.zoom?.value ?? 1
+		const sceneX = (event.clientX - (appState.offsetLeft ?? 0)) / zoom + (appState.scrollX ?? 0)
+		const sceneY = (event.clientY - (appState.offsetTop ?? 0)) / zoom + (appState.scrollY ?? 0)
+		const threshold = 10 / zoom
+		const selected = appState.selectedElementIds
+		const elements = excalidrawAPI.getSceneElements()
+
+		for (let i = elements.length - 1; i >= 0; i--) {
+			const element = elements[i]
+			// keep text (de)selection/editing behaviour untouched
+			if (element.type === 'text' || element.type === 'selection') {
+				continue
+			}
+			if (selected[element.id]) {
+				continue
+			}
+			if (!isPointInRotatedElementBounds(sceneX, sceneY, element, threshold)) {
+				continue
+			}
+
+			event.stopPropagation()
+			excalidrawAPI.updateScene({
+				appState: { selectedElementIds: { [element.id]: true } },
+			})
+			return
+		}
+	}, [excalidrawAPI])
+
 	const {
 		setConfig,
 		gridModeEnabled,
@@ -698,7 +747,11 @@ export default function App({
 
 	return (
 		<div className={appClassName} style={{ display: 'flex', flexDirection: 'column' }}>
-			<div className={`excalidraw-wrapper${isToolbarDockedRight ? ' whiteboard-toolbar-right' : ''}`} style={{ flex: 1, height: '100%', position: 'relative' }}>
+			<div
+				className={`excalidraw-wrapper${isToolbarDockedRight ? ' whiteboard-toolbar-right' : ''}`}
+				style={{ flex: 1, height: '100%', position: 'relative' }}
+				onPointerDownCapture={handleSelectionFirstPointerDown}
+			>
 				{!isVersionPreview && <MemoizedNetworkStatusIndicator />}
 				<MemoizedAuthErrorNotification />
 				{isVersionPreview && (
@@ -844,4 +897,34 @@ export default function App({
 			</div>
 		</div>
 	)
+}
+
+/**
+ * Point-in-(rotated)-rectangle test used by the "click to select before
+ * dragging" pointer handler. The point is given in scene coordinates.
+ */
+function isPointInRotatedElementBounds(
+	sceneX: number,
+	sceneY: number,
+	element: {
+		x: number
+		y: number
+		width: number
+		height: number
+		angle?: number
+	},
+	threshold: number,
+): boolean {
+	const centerX = element.x + element.width / 2
+	const centerY = element.y + element.height / 2
+	const dx = sceneX - centerX
+	const dy = sceneY - centerY
+	const angle = element.angle ?? 0
+	const cos = Math.cos(-angle)
+	const sin = Math.sin(-angle)
+	const localX = dx * cos - dy * sin
+	const localY = dx * sin + dy * cos
+	const hitHalfWidth = element.width / 2 + threshold
+	const hitHalfHeight = element.height / 2 + threshold
+	return Math.abs(localX) <= hitHalfWidth && Math.abs(localY) <= hitHalfHeight
 }
