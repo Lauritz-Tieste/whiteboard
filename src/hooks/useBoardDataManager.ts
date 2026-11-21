@@ -13,7 +13,7 @@ import { useSyncStore } from '../stores/useSyncStore'
 import { db } from '../database/db'
 import { generateUrl } from '@nextcloud/router'
 import { useShallow } from 'zustand/react/shallow'
-import { initialDataState } from '../constants/excalidraw'
+import { defaultActiveTool, initialDataState } from '../constants/excalidraw'
 import logger from '../utils/logger'
 import { computeElementVersionHash, computeSceneKey, mergeSceneElements } from '../utils/syncSceneData'
 import { getLocalBoardDataPolicy } from '../utils/localBoardData.ts'
@@ -140,6 +140,8 @@ export function useBoardDataManager() {
 				const finalAppState = {
 					...initialDataState.appState,
 					...sanitizedAppState,
+					// The move (hand) tool is the default when opening a board.
+					activeTool: defaultActiveTool,
 				}
 
 				resolveInitialData({
@@ -285,7 +287,12 @@ export function useBoardDataManager() {
 			if (dataToUse && dataToUse.elements) {
 				const elements = dataToUse.elements
 				const sanitizedAppState = sanitizeAppStateForSync(dataToUse.appState)
-				const finalAppState = { ...defaultSettings, ...sanitizedAppState }
+				const finalAppState = {
+					...defaultSettings,
+					...sanitizedAppState,
+					// The move (hand) tool is the default when opening a board.
+					activeTool: defaultActiveTool,
+				}
 				const files = dataToUse.files || {}
 
 				// Force a small delay to ensure the component is ready to receive the data
